@@ -197,7 +197,6 @@
                 </div>
             </div>
 
-            <!-- Dőlés / Horizont buborék -->
             <div class="mt-4 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
                 <span>Dőlés szöghelyzet (Pitch / Roll):</span>
                 <span id="tiltAngle" class="mono-val text-slate-200 font-medium">P: 0° | R: 0°</span>
@@ -220,22 +219,18 @@
                     <span id="compassDir" class="mono-val text-xs text-rose-400 bg-rose-950/40 border border-rose-800/40 px-2 py-1 rounded-md">É</span>
                 </div>
 
-                <!-- Iránytű számlap és mutató -->
                 <div class="flex flex-col items-center justify-center my-4">
                     <div class="compass-dial flex items-center justify-center shadow-inner">
-                        <!-- Égtájak feliratai -->
                         <span class="absolute top-2 text-[11px] font-bold text-rose-400 mono-val">É</span>
                         <span class="absolute right-2.5 text-[11px] font-semibold text-slate-400 mono-val">K</span>
                         <span class="absolute bottom-2 text-[11px] font-semibold text-slate-400 mono-val">D</span>
                         <span class="absolute left-2.5 text-[11px] font-semibold text-slate-400 mono-val">NY</span>
                         
-                        <!-- Forgó nyíl modul -->
                         <div id="compassNeedle" class="compass-needle-container">
                             <div class="needle-north"></div>
                             <div class="needle-south"></div>
                         </div>
 
-                        <!-- Középponti kupak -->
                         <div class="compass-center-cap"></div>
                     </div>
 
@@ -266,12 +261,10 @@
                             <p class="text-xs text-slate-400">LED mátrix fényérzékelés</p>
                         </div>
                     </div>
-                    <span id="lightDesc" class="mono-val text-xs text-amber-400 bg-amber-950/40 border border-amber-800/40 px-2 py-1 rounded-md">Sötét</span>
+                    <span id="lightDesc" class="mono-val text-xs text-amber-400 bg-amber-950/40 border border-amber-800/40 px-2 py-1 rounded-md">Várakozás...</span>
                 </div>
 
-                <!-- Fényerő kijelző és ragyogás effekt -->
                 <div class="flex flex-col items-center justify-center my-4 relative">
-                    <!-- Dinamikusan pulzáló háttér glow -->
                     <div id="lightGlow" class="absolute w-28 h-28 rounded-full bg-amber-500/20 blur-2xl transition-all duration-300"></div>
 
                     <div class="relative z-10 text-center">
@@ -282,7 +275,6 @@
                         <span id="lightPercent" class="text-xs mono-val text-amber-400 font-semibold block mt-1">0%</span>
                     </div>
 
-                    <!-- Progress bar -->
                     <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-800 mt-6 overflow-hidden p-0.5">
                         <div id="lightBar" class="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-200 transition-all duration-150" style="width: 0%"></div>
                     </div>
@@ -290,8 +282,8 @@
             </div>
 
             <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                <span>NUS UART stream:</span>
-                <span class="mono-val text-amber-300/80 font-mono text-[11px]">input.lightLevel()</span>
+                <span>NUS UART adatfolyam:</span>
+                <span id="uartDebug" class="mono-val text-amber-300/80 font-mono text-[11px]">Várakozás L: adatra</span>
             </div>
         </div>
 
@@ -316,7 +308,6 @@
                     <span class="text-2xl font-bold text-orange-400 ml-1">°C</span>
                 </div>
 
-                <!-- Hőmérséklet sáv -->
                 <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
                     <div id="tempBar" class="h-full bg-gradient-to-r from-blue-500 via-amber-400 to-rose-500 transition-all duration-300" style="width: 50%"></div>
                 </div>
@@ -349,7 +340,6 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 my-4">
-                    <!-- 'A' Gomb -->
                     <div id="cardBtnA" class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center transition-all duration-100">
                         <div id="circleBtnA" class="w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-900 flex items-center justify-center text-lg font-bold text-slate-400 transition-all">
                             A
@@ -357,7 +347,6 @@
                         <span id="labelBtnA" class="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-2">Felengedve</span>
                     </div>
 
-                    <!-- 'B' Gomb -->
                     <div id="cardBtnB" class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center transition-all duration-100">
                         <div id="circleBtnB" class="w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-900 flex items-center justify-center text-lg font-bold text-slate-400 transition-all">
                             B
@@ -392,11 +381,10 @@
             </div>
 
             <p class="text-xs text-slate-300 leading-relaxed mb-3">
-                A micro:bit alapértelmezetten nem kapcsolódik Bluetooth-on, amíg a kódjában nincsenek elindítva a szolgáltatások. A MakeCode-ban add hozzá a <strong>Bluetooth</strong> kiterjesztést, és másold be az alábbi blokkokat:
+                A MakeCode-ban add hozzá a <strong>Bluetooth</strong> kiterjesztést, majd illeszd be az alábbi kódot a JavaScript fülre:
             </p>
 
             <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto mb-4">
-                <p class="text-slate-500">// TypeScript nézetben másolható:</p>
                 bluetooth.startAccelerometerService();<br>
                 bluetooth.startMagnetometerService();<br>
                 bluetooth.startButtonService();<br>
@@ -412,7 +400,7 @@
             <div class="bg-amber-950/30 border border-amber-800/50 p-3 rounded-xl text-xs text-amber-300 mb-4 flex items-start gap-2.5">
                 <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 mt-0.5"></i>
                 <div>
-                    <strong>Fontos beállítás:</strong> A MakeCode jobb felső fogaskerekénél (Projektbeállítások) kapcsold be a <em>"No Pairing Required"</em> (Párosítás nem szükséges) opciót a könnyű csatlakozáshoz!
+                    <strong>Fontos beállítás:</strong> A MakeCode jobb felső fogaskerekénél (Projektbeállítások / Project Settings) kapcsold be a <em>"No Pairing Required"</em> opciót!
                 </div>
             </div>
 
@@ -426,7 +414,6 @@
     <script>
         lucide.createIcons();
 
-        // micro:bit Hivatalos Bluetooth GATT Szolgáltatás és Karakterisztika UUID-k
         const UUIDS = {
             ACCELEROMETER_SERVICE: 'e95d0753-251d-470a-a062-fa1922dfa9a8',
             ACCELEROMETER_DATA:    'e95dca4b-251d-470a-a062-fa1922dfa9a8',
@@ -444,9 +431,10 @@
             BUTTON_A_STATE:        'e95dda90-251d-470a-a062-fa1922dfa9a8',
             BUTTON_B_STATE:        'e95dda91-251d-470a-a062-fa1922dfa9a8',
 
-            // Nordic UART Service a fényerősség továbbításához
+            // Nordic UART Service (NUS)
             UART_SERVICE:          '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
-            UART_TX:               '6e400002-b5a3-f393-e0a9-e50e24dcca9e'
+            UART_TX:               '6e400003-b5a3-f393-e0a9-e50e24dcca9e', // Adatátvitel a micro:bit felől (Notify)
+            UART_RX:               '6e400002-b5a3-f393-e0a9-e50e24dcca9e'  // Adatfogadás a micro:bit felé (Write)
         };
 
         let bleDevice = null;
@@ -457,7 +445,6 @@
         let minTemp = null;
         let maxTemp = null;
 
-        // Gyorsulásmérő diagram pufferelés
         const accHistory = {
             x: new Array(50).fill(0),
             y: new Array(50).fill(0),
@@ -477,7 +464,6 @@
         function drawGraph() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Rácsvonalak rajzolása
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -492,7 +478,6 @@
                 const step = canvas.width / (data.length - 1);
                 
                 for (let i = 0; i < data.length; i++) {
-                    // Normalizálás: -2000mg .. +2000mg az ablak magasságára
                     const val = data[i];
                     const norm = (val + 2000) / 4000;
                     const y = canvas.height - (norm * canvas.height);
@@ -503,13 +488,12 @@
                 ctx.stroke();
             };
 
-            drawAxis(accHistory.x, '#fb7185'); // X: Pirosas
-            drawAxis(accHistory.y, '#34d399'); // Y: Zöldes
-            drawAxis(accHistory.z, '#22d3ee'); // Z: Cián
+            drawAxis(accHistory.x, '#fb7185');
+            drawAxis(accHistory.y, '#34d399');
+            drawAxis(accHistory.z, '#22d3ee');
         }
         drawGraph();
 
-        // Állapot frissítő segédfüggvény
         function updateStatus(connected, text, colorClass = 'bg-emerald-500') {
             const statusDot = document.getElementById('statusDot');
             const statusPing = document.getElementById('statusPing');
@@ -544,7 +528,6 @@
             }
         }
 
-        // Bluetooth Csatlakozás / Bontás
         async function toggleConnection() {
             if (isSimulating) {
                 toggleSimulation();
@@ -574,7 +557,7 @@
 
                 updateStatus(true, `Csatlakozva: ${bleDevice.name}`);
 
-                // Szolgáltatások inicializálása
+                // Szolgáltatások betöltése
                 await initAccelerometer(gattServer);
                 await initMagnetometer(gattServer);
                 await initTemperature(gattServer);
@@ -598,12 +581,11 @@
             });
         }
 
-        // 1. Gyorsulásmérő setup
+        // Gyorsulásmérő setup
         async function initAccelerometer(server) {
             try {
                 const service = await server.getPrimaryService(UUIDS.ACCELEROMETER_SERVICE);
 
-                // Periódus beállítása 80 ms-ra az adatfolyam garantálásához
                 try {
                     const periodChar = await service.getCharacteristic(UUIDS.ACCELEROMETER_PERIOD);
                     await periodChar.writeValue(new Uint16Array([80]));
@@ -615,7 +597,6 @@
                 await dataChar.startNotifications();
                 dataChar.addEventListener('characteristicvaluechanged', (e) => {
                     const view = e.target.value;
-                    // Int16 formátumban érkező adatok (mg)
                     const x = view.getInt16(0, true);
                     const y = view.getInt16(2, true);
                     const z = view.getInt16(4, true);
@@ -623,7 +604,7 @@
                     incrementPacket('Acc');
                 });
             } catch (e) {
-                console.warn('Gyorsulásmérő szolgáltatás nem elérhető:', e);
+                console.warn('Gyorsulásmérő hiba:', e);
             }
         }
 
@@ -632,7 +613,6 @@
             document.getElementById('accY').innerText = y;
             document.getElementById('accZ').innerText = z;
 
-            // Dőlésszögek számítása
             const pitch = Math.round(Math.atan2(x, Math.sqrt(y * y + z * z)) * 180 / Math.PI);
             const roll = Math.round(Math.atan2(y, Math.sqrt(x * x + z * z)) * 180 / Math.PI);
             document.getElementById('tiltAngle').innerText = `P: ${pitch}° | R: ${roll}°`;
@@ -643,7 +623,7 @@
             drawGraph();
         }
 
-        // 2. Magnetométer (Iránytű) setup
+        // Magnetométer setup
         async function initMagnetometer(server) {
             try {
                 const service = await server.getPrimaryService(UUIDS.MAGNETOMETER_SERVICE);
@@ -663,13 +643,12 @@
                     incrementPacket('Mag');
                 });
             } catch (e) {
-                console.warn('Magnetométer nem elérhető vagy nincs kalibrálva:', e);
+                console.warn('Magnetométer hiba:', e);
             }
         }
 
         function updateCompassUI(heading) {
             document.getElementById('compassHeading').innerText = heading;
-            // A nyíl elforgatása a középpont körül
             document.getElementById('compassNeedle').style.transform = `rotate(${heading}deg)`;
 
             const dirs = ['É', 'ÉK', 'K', 'DK', 'D', 'DNY', 'NY', 'ÉNY'];
@@ -677,7 +656,7 @@
             document.getElementById('compassDir').innerText = dirs[idx];
         }
 
-        // 3. Hőmérséklet setup
+        // Hőmérséklet setup
         async function initTemperature(server) {
             try {
                 const service = await server.getPrimaryService(UUIDS.TEMPERATURE_SERVICE);
@@ -689,7 +668,7 @@
                     incrementPacket('Temp');
                 });
             } catch (e) {
-                console.warn('Hőmérő szolgáltatás nem elérhető:', e);
+                console.warn('Hőmérő hiba:', e);
             }
         }
 
@@ -709,7 +688,7 @@
             else { stateEl.innerText = 'Meleg'; stateEl.className = 'mono-val text-xs text-rose-400 bg-rose-950/40 border border-rose-800/40 px-2 py-1 rounded-md'; }
         }
 
-        // 4. Gombok setup
+        // Gombok setup
         async function initButtons(server) {
             try {
                 const service = await server.getPrimaryService(UUIDS.BUTTON_SERVICE);
@@ -728,7 +707,7 @@
                     incrementPacket('Btn');
                 });
             } catch (e) {
-                console.warn('Gomb szolgáltatás nem elérhető:', e);
+                console.warn('Gomb hiba:', e);
             }
         }
 
@@ -750,33 +729,59 @@
             }
         }
 
-        // 5. Nordic UART Fényerősség figyelő
+        // 5. Javított Nordic UART Service setup (TX feliratkozás és automatikus fallback)
         let uartBuffer = '';
         async function initUartLight(server) {
             try {
                 const service = await server.getPrimaryService(UUIDS.UART_SERVICE);
-                const txChar = await service.getCharacteristic(UUIDS.UART_TX);
+                
+                // Megpróbáljuk megkeresni a TX karakterisztikát (0003, fallback 0002)
+                let txChar = null;
+                try {
+                    txChar = await service.getCharacteristic(UUIDS.UART_TX);
+                } catch (e) {
+                    txChar = await service.getCharacteristic(UUIDS.UART_RX);
+                }
+
                 await txChar.startNotifications();
+                document.getElementById('uartDebug').innerText = 'UART kapcsolat él';
+
                 txChar.addEventListener('characteristicvaluechanged', (e) => {
                     const decoder = new TextDecoder();
-                    uartBuffer += decoder.decode(e.target.value);
-                    
-                    const lines = uartBuffer.split('\n');
-                    uartBuffer = lines.pop(); // A befejezetlen sort a pufferben hagyjuk
+                    const chunk = decoder.decode(e.target.value);
+                    uartBuffer += chunk;
 
-                    lines.forEach(line => {
-                        const trimmed = line.trim();
-                        if (trimmed.startsWith('L:')) {
-                            const val = parseInt(trimmed.substring(2));
-                            if (!isNaN(val)) {
-                                updateLightUI(val);
-                                incrementPacket('Light');
-                            }
+                    // Soronkénti feldolgozás
+                    let newlineIdx;
+                    while ((newlineIdx = uartBuffer.indexOf('\n')) >= 0) {
+                        const line = uartBuffer.substring(0, newlineIdx).trim();
+                        uartBuffer = uartBuffer.substring(newlineIdx + 1);
+
+                        if (line.length > 0) {
+                            processUartMessage(line);
                         }
-                    });
+                    }
                 });
             } catch (e) {
-                console.warn('UART Szolgáltatás nem elérhető:', e);
+                console.warn('UART Szolgáltatás nem indult el:', e);
+                document.getElementById('uartDebug').innerText = 'UART nincs elindítva';
+            }
+        }
+
+        function processUartMessage(line) {
+            document.getElementById('uartDebug').innerText = `Adat: "${line}"`;
+            
+            // Ha "L:123" vagy csak natúr szám érkezik
+            let val = null;
+            if (line.startsWith('L:')) {
+                val = parseInt(line.substring(2));
+            } else if (!isNaN(parseInt(line))) {
+                val = parseInt(line);
+            }
+
+            if (val !== null && !isNaN(val)) {
+                updateLightUI(val);
+                incrementPacket('Light');
             }
         }
 
@@ -788,15 +793,14 @@
             document.getElementById('lightPercent').innerText = `${percent}%`;
             document.getElementById('lightBar').style.width = `${percent}%`;
 
-            // Dinamikus háttér glow
             const glowOpacity = Math.max(0.1, clamped / 255);
             document.getElementById('lightGlow').style.opacity = glowOpacity;
             document.getElementById('lightGlow').style.transform = `scale(${1 + (clamped / 255) * 0.5})`;
 
             const descEl = document.getElementById('lightDesc');
-            if (clamped < 40) descEl.innerText = 'Sötét';
-            else if (clamped < 100) descEl.innerText = 'Félhomály';
-            else if (clamped < 180) descEl.innerText = 'Világos szoba';
+            if (clamped < 35) descEl.innerText = 'Sötét';
+            else if (clamped < 90) descEl.innerText = 'Félhomály';
+            else if (clamped < 170) descEl.innerText = 'Világos szoba';
             else descEl.innerText = 'Erős napfény';
         }
 
@@ -820,7 +824,6 @@
 
                 simInterval = setInterval(() => {
                     t += 0.05;
-                    // Szintetikus szenzoradatok
                     const sx = Math.round(Math.sin(t) * 800);
                     const sy = Math.round(Math.cos(t * 0.8) * 800);
                     const sz = Math.round(-1000 + Math.sin(t * 0.5) * 300);
