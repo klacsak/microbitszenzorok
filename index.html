@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>micro:bit Szenzor Dashboard</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Ikonok -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
@@ -103,20 +101,17 @@
             </div>
         </div>
 
-        <!-- Vezérlők és csatlakozás -->
+        <!-- Vezérlők -->
         <div class="flex items-center gap-2.5">
-            <!-- Szimuláció kapcsoló -->
             <button id="simBtn" onclick="toggleSimulation()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition-all">
                 <i data-lucide="play-circle" class="w-4 h-4 text-emerald-400"></i>
                 <span id="simText">Szimuláció: KI</span>
             </button>
 
-            <!-- Kód segédlet modal nyitó -->
             <button onclick="toggleModal(true)" class="p-2 rounded-lg border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition-all" title="MakeCode Útmutató">
                 <i data-lucide="help-circle" class="w-5 h-5"></i>
             </button>
 
-            <!-- Bluetooth csatlakozó gomb -->
             <button id="connectBtn" onclick="toggleConnection()" class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all shadow-md shadow-cyan-500/20 active:scale-95">
                 <i data-lucide="bluetooth" class="w-4 h-4"></i>
                 <span id="connectBtnText">Csatlakozás</span>
@@ -135,7 +130,6 @@
                 <span id="statusText" class="font-medium text-slate-300">Nincs kapcsolat micro:bittel</span>
             </div>
             
-            <!-- Szenzorok élő állapota -->
             <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
                 <span id="diagAcc" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">ACC: —</span>
                 <span id="diagMag" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">MAG: —</span>
@@ -151,7 +145,7 @@
     <!-- FŐ MŰSZERFAL -->
     <main class="max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <!-- 1. KÁRTYA: GYORSULÁSMÉRŐ (ACCELEROMETER) -->
+        <!-- 1. GYORSULÁSMÉRŐ -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between glow-cyan backdrop-blur-sm lg:col-span-2">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -167,7 +161,6 @@
                     <span class="mono-val text-xs text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-1 rounded-md">±2000 mg</span>
                 </div>
 
-                <!-- Numerikus értékek -->
                 <div class="grid grid-cols-3 gap-3 mb-4">
                     <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 text-center">
                         <span class="text-xs text-rose-400 font-semibold uppercase block mb-1">X Tengely</span>
@@ -186,7 +179,6 @@
                     </div>
                 </div>
 
-                <!-- Oszcilloszkóp diagram -->
                 <div class="bg-slate-950 rounded-xl p-2 border border-slate-800/80 relative h-40 overflow-hidden">
                     <canvas id="accCanvas" class="w-full h-full block"></canvas>
                     <div class="absolute bottom-2 right-3 flex items-center gap-3 text-[10px] mono-val bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">
@@ -203,7 +195,7 @@
             </div>
         </div>
 
-        <!-- 2. KÁRTYA: IRÁNYTŰ (COMPASS) -->
+        <!-- 2. IRÁNYTŰ -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between backdrop-blur-sm">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -248,7 +240,7 @@
             </div>
         </div>
 
-        <!-- 3. KÁRTYA: FÉNYERŐSSÉGMÉRŐ (LIGHT LEVEL) -->
+        <!-- 3. FÉNYERŐSSÉGMÉRŐ -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between glow-amber backdrop-blur-sm">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -282,12 +274,12 @@
             </div>
 
             <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                <span>NUS UART adatfolyam:</span>
-                <span id="uartDebug" class="mono-val text-amber-300/80 font-mono text-[11px]">Várakozás L: adatra</span>
+                <span>UART státusz:</span>
+                <span id="uartDebug" class="mono-val text-amber-300/80 font-mono text-[11px] truncate max-w-[180px]">Várakozás...</span>
             </div>
         </div>
 
-        <!-- 4. KÁRTYA: HŐMÉRSÉKLET (TEMPERATURE) -->
+        <!-- 4. HŐMÉRSÉKLET -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between backdrop-blur-sm">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -324,7 +316,7 @@
             </div>
         </div>
 
-        <!-- 5. KÁRTYA: GOMBOK ÁLLAPOTA (BUTTONS) -->
+        <!-- 5. GOMBOK -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between backdrop-blur-sm">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -377,11 +369,11 @@
             
             <div class="flex items-center gap-2.5 mb-4 text-cyan-400">
                 <i data-lucide="code" class="w-6 h-6"></i>
-                <h3 class="text-lg font-bold text-white">MakeCode Programozási Útmutató</h3>
+                <h3 class="text-lg font-bold text-white">MakeCode Kód & Beállítás</h3>
             </div>
 
             <p class="text-xs text-slate-300 leading-relaxed mb-3">
-                A MakeCode-ban add hozzá a <strong>Bluetooth</strong> kiterjesztést, majd illeszd be az alábbi kódot a JavaScript fülre:
+                A MakeCode-ban add hozzá a <strong>Bluetooth</strong> kiterjesztést, majd a JavaScript fülön másold be ezt:
             </p>
 
             <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto mb-4">
@@ -393,471 +385,13 @@
                 input.calibrateCompass();<br><br>
                 basic.forever(function () {<br>
                 &nbsp;&nbsp;&nbsp;&nbsp;bluetooth.uartWriteString("L:" + input.lightLevel() + "\n");<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;basic.pause(100);<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;basic.pause(150);<br>
                 });
             </div>
 
             <div class="bg-amber-950/30 border border-amber-800/50 p-3 rounded-xl text-xs text-amber-300 mb-4 flex items-start gap-2.5">
                 <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 mt-0.5"></i>
                 <div>
-                    <strong>Fontos beállítás:</strong> A MakeCode jobb felső fogaskerekénél (Projektbeállítások / Project Settings) kapcsold be a <em>"No Pairing Required"</em> opciót!
+                    <strong>Ha V1 micro:bited van:</strong> Vedd ki a <code>bluetooth.startMagnetometerService()</code> sort a memóriakorlát miatt!
                 </div>
             </div>
-
-            <button onclick="toggleModal(false)" class="w-full py-2.5 rounded-xl font-medium bg-slate-800 hover:bg-slate-700 text-white text-xs transition-all">
-                Értem, bezárás
-            </button>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT LOGIKA -->
-    <script>
-        lucide.createIcons();
-
-        const UUIDS = {
-            ACCELEROMETER_SERVICE: 'e95d0753-251d-470a-a062-fa1922dfa9a8',
-            ACCELEROMETER_DATA:    'e95dca4b-251d-470a-a062-fa1922dfa9a8',
-            ACCELEROMETER_PERIOD:  'e95dfb24-251d-470a-a062-fa1922dfa9a8',
-
-            MAGNETOMETER_SERVICE:  'e95df2d8-251d-470a-a062-fa1922dfa9a8',
-            MAGNETOMETER_DATA:     'e95dfb11-251d-470a-a062-fa1922dfa9a8',
-            MAGNETOMETER_BEARING:  'e95d9715-251d-470a-a062-fa1922dfa9a8',
-            MAGNETOMETER_PERIOD:   'e95d386c-251d-470a-a062-fa1922dfa9a8',
-
-            TEMPERATURE_SERVICE:   'e95d6100-251d-470a-a062-fa1922dfa9a8',
-            TEMPERATURE_DATA:      'e95d9250-251d-470a-a062-fa1922dfa9a8',
-
-            BUTTON_SERVICE:        'e95d9882-251d-470a-a062-fa1922dfa9a8',
-            BUTTON_A_STATE:        'e95dda90-251d-470a-a062-fa1922dfa9a8',
-            BUTTON_B_STATE:        'e95dda91-251d-470a-a062-fa1922dfa9a8',
-
-            // Nordic UART Service (NUS)
-            UART_SERVICE:          '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
-            UART_TX:               '6e400003-b5a3-f393-e0a9-e50e24dcca9e', // Adatátvitel a micro:bit felől (Notify)
-            UART_RX:               '6e400002-b5a3-f393-e0a9-e50e24dcca9e'  // Adatfogadás a micro:bit felé (Write)
-        };
-
-        let bleDevice = null;
-        let gattServer = null;
-        let isSimulating = false;
-        let simInterval = null;
-        let packetCount = 0;
-        let minTemp = null;
-        let maxTemp = null;
-
-        const accHistory = {
-            x: new Array(50).fill(0),
-            y: new Array(50).fill(0),
-            z: new Array(50).fill(0)
-        };
-
-        const canvas = document.getElementById('accCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function drawGraph() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-
-            const drawAxis = (data, color) => {
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                const step = canvas.width / (data.length - 1);
-                
-                for (let i = 0; i < data.length; i++) {
-                    const val = data[i];
-                    const norm = (val + 2000) / 4000;
-                    const y = canvas.height - (norm * canvas.height);
-                    const x = i * step;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-            };
-
-            drawAxis(accHistory.x, '#fb7185');
-            drawAxis(accHistory.y, '#34d399');
-            drawAxis(accHistory.z, '#22d3ee');
-        }
-        drawGraph();
-
-        function updateStatus(connected, text, colorClass = 'bg-emerald-500') {
-            const statusDot = document.getElementById('statusDot');
-            const statusPing = document.getElementById('statusPing');
-            const statusText = document.getElementById('statusText');
-            const connectBtnText = document.getElementById('connectBtnText');
-            const connectBtn = document.getElementById('connectBtn');
-
-            statusText.innerText = text;
-
-            if (connected) {
-                statusDot.className = `relative inline-flex rounded-full h-2.5 w-2.5 ${colorClass}`;
-                statusPing.className = `animate-ping absolute inline-flex h-full w-full rounded-full ${colorClass} opacity-75`;
-                connectBtnText.innerText = 'Leválasztás';
-                connectBtn.classList.replace('bg-cyan-500', 'bg-rose-500');
-                connectBtn.classList.replace('hover:bg-cyan-400', 'hover:bg-rose-400');
-            } else {
-                statusDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500';
-                statusPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-500 opacity-75';
-                connectBtnText.innerText = 'Csatlakozás';
-                connectBtn.classList.replace('bg-rose-500', 'bg-cyan-500');
-                connectBtn.classList.replace('hover:bg-rose-400', 'hover:bg-cyan-400');
-            }
-        }
-
-        function incrementPacket(sensorType) {
-            packetCount++;
-            document.getElementById('packetCounter').innerText = `${packetCount} csomag`;
-            const badge = document.getElementById(`diag${sensorType}`);
-            if (badge) {
-                badge.classList.replace('text-slate-400', 'text-emerald-400');
-                badge.innerText = `${sensorType}: AKTÍV`;
-            }
-        }
-
-        async function toggleConnection() {
-            if (isSimulating) {
-                toggleSimulation();
-            }
-
-            if (bleDevice && bleDevice.gatt.connected) {
-                bleDevice.gatt.disconnect();
-                return;
-            }
-
-            try {
-                updateStatus(false, 'Keresés és kapcsolódás...');
-
-                bleDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ namePrefix: 'BBC micro:bit' }],
-                    optionalServices: [
-                        UUIDS.ACCELEROMETER_SERVICE,
-                        UUIDS.MAGNETOMETER_SERVICE,
-                        UUIDS.TEMPERATURE_SERVICE,
-                        UUIDS.BUTTON_SERVICE,
-                        UUIDS.UART_SERVICE
-                    ]
-                });
-
-                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
-                gattServer = await bleDevice.gatt.connect();
-
-                updateStatus(true, `Csatlakozva: ${bleDevice.name}`);
-
-                // Szolgáltatások betöltése
-                await initAccelerometer(gattServer);
-                await initMagnetometer(gattServer);
-                await initTemperature(gattServer);
-                await initButtons(gattServer);
-                await initUartLight(gattServer);
-
-            } catch (err) {
-                console.error('Bluetooth hiba:', err);
-                updateStatus(false, `Hiba: ${err.message || 'Sikertelen kapcsolódás'}`);
-            }
-        }
-
-        function onDisconnected() {
-            updateStatus(false, 'Kapcsolat megszakadt');
-            ['Acc', 'Mag', 'Temp', 'Btn', 'Light'].forEach(s => {
-                const el = document.getElementById(`diag${s}`);
-                if (el) {
-                    el.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60';
-                    el.innerText = `${s.toUpperCase()}: —`;
-                }
-            });
-        }
-
-        // Gyorsulásmérő setup
-        async function initAccelerometer(server) {
-            try {
-                const service = await server.getPrimaryService(UUIDS.ACCELEROMETER_SERVICE);
-
-                try {
-                    const periodChar = await service.getCharacteristic(UUIDS.ACCELEROMETER_PERIOD);
-                    await periodChar.writeValue(new Uint16Array([80]));
-                } catch (e) {
-                    console.warn('Nem sikerült beállítani az ACC periódust:', e);
-                }
-
-                const dataChar = await service.getCharacteristic(UUIDS.ACCELEROMETER_DATA);
-                await dataChar.startNotifications();
-                dataChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const view = e.target.value;
-                    const x = view.getInt16(0, true);
-                    const y = view.getInt16(2, true);
-                    const z = view.getInt16(4, true);
-                    updateAccelerometerUI(x, y, z);
-                    incrementPacket('Acc');
-                });
-            } catch (e) {
-                console.warn('Gyorsulásmérő hiba:', e);
-            }
-        }
-
-        function updateAccelerometerUI(x, y, z) {
-            document.getElementById('accX').innerText = x;
-            document.getElementById('accY').innerText = y;
-            document.getElementById('accZ').innerText = z;
-
-            const pitch = Math.round(Math.atan2(x, Math.sqrt(y * y + z * z)) * 180 / Math.PI);
-            const roll = Math.round(Math.atan2(y, Math.sqrt(x * x + z * z)) * 180 / Math.PI);
-            document.getElementById('tiltAngle').innerText = `P: ${pitch}° | R: ${roll}°`;
-
-            accHistory.x.push(x); accHistory.x.shift();
-            accHistory.y.push(y); accHistory.y.shift();
-            accHistory.z.push(z); accHistory.z.shift();
-            drawGraph();
-        }
-
-        // Magnetométer setup
-        async function initMagnetometer(server) {
-            try {
-                const service = await server.getPrimaryService(UUIDS.MAGNETOMETER_SERVICE);
-
-                try {
-                    const periodChar = await service.getCharacteristic(UUIDS.MAGNETOMETER_PERIOD);
-                    await periodChar.writeValue(new Uint16Array([80]));
-                } catch (e) {
-                    console.warn('Nem sikerült beállítani a MAG periódust:', e);
-                }
-
-                const bearingChar = await service.getCharacteristic(UUIDS.MAGNETOMETER_BEARING);
-                await bearingChar.startNotifications();
-                bearingChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const heading = e.target.value.getUint16(0, true);
-                    updateCompassUI(heading);
-                    incrementPacket('Mag');
-                });
-            } catch (e) {
-                console.warn('Magnetométer hiba:', e);
-            }
-        }
-
-        function updateCompassUI(heading) {
-            document.getElementById('compassHeading').innerText = heading;
-            document.getElementById('compassNeedle').style.transform = `rotate(${heading}deg)`;
-
-            const dirs = ['É', 'ÉK', 'K', 'DK', 'D', 'DNY', 'NY', 'ÉNY'];
-            const idx = Math.round(heading / 45) % 8;
-            document.getElementById('compassDir').innerText = dirs[idx];
-        }
-
-        // Hőmérséklet setup
-        async function initTemperature(server) {
-            try {
-                const service = await server.getPrimaryService(UUIDS.TEMPERATURE_SERVICE);
-                const tempChar = await service.getCharacteristic(UUIDS.TEMPERATURE_DATA);
-                await tempChar.startNotifications();
-                tempChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const temp = e.target.value.getInt8(0);
-                    updateTempUI(temp);
-                    incrementPacket('Temp');
-                });
-            } catch (e) {
-                console.warn('Hőmérő hiba:', e);
-            }
-        }
-
-        function updateTempUI(temp) {
-            document.getElementById('tempValue').innerText = temp;
-
-            if (minTemp === null || temp < minTemp) minTemp = temp;
-            if (maxTemp === null || temp > maxTemp) maxTemp = temp;
-            document.getElementById('tempMinMax').innerText = `${minTemp}°C / ${maxTemp}°C`;
-
-            const percent = Math.min(Math.max((temp / 50) * 100, 0), 100);
-            document.getElementById('tempBar').style.width = `${percent}%`;
-
-            const stateEl = document.getElementById('tempState');
-            if (temp < 18) { stateEl.innerText = 'Hűvös'; stateEl.className = 'mono-val text-xs text-blue-400 bg-blue-950/40 border border-blue-800/40 px-2 py-1 rounded-md'; }
-            else if (temp <= 27) { stateEl.innerText = 'Optimális'; stateEl.className = 'mono-val text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-1 rounded-md'; }
-            else { stateEl.innerText = 'Meleg'; stateEl.className = 'mono-val text-xs text-rose-400 bg-rose-950/40 border border-rose-800/40 px-2 py-1 rounded-md'; }
-        }
-
-        // Gombok setup
-        async function initButtons(server) {
-            try {
-                const service = await server.getPrimaryService(UUIDS.BUTTON_SERVICE);
-
-                const btnA = await service.getCharacteristic(UUIDS.BUTTON_A_STATE);
-                await btnA.startNotifications();
-                btnA.addEventListener('characteristicvaluechanged', (e) => {
-                    updateButtonUI('A', e.target.value.getUint8(0));
-                    incrementPacket('Btn');
-                });
-
-                const btnB = await service.getCharacteristic(UUIDS.BUTTON_B_STATE);
-                await btnB.startNotifications();
-                btnB.addEventListener('characteristicvaluechanged', (e) => {
-                    updateButtonUI('B', e.target.value.getUint8(0));
-                    incrementPacket('Btn');
-                });
-            } catch (e) {
-                console.warn('Gomb hiba:', e);
-            }
-        }
-
-        function updateButtonUI(btn, state) {
-            const card = document.getElementById(`cardBtn${btn}`);
-            const circle = document.getElementById(`circleBtn${btn}`);
-            const label = document.getElementById(`labelBtn${btn}`);
-
-            if (state === 1 || state === 2) {
-                card.classList.replace('border-slate-800', 'border-indigo-500');
-                circle.className = 'w-12 h-12 rounded-full border-2 border-indigo-400 bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-500/50 scale-105 transition-all';
-                label.innerText = state === 2 ? 'Tartva' : 'Lenyomva';
-                label.className = 'text-xs font-semibold uppercase tracking-wider text-indigo-400 mt-2';
-            } else {
-                card.classList.replace('border-indigo-500', 'border-slate-800');
-                circle.className = 'w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-900 flex items-center justify-center text-lg font-bold text-slate-400 transition-all';
-                label.innerText = 'Felengedve';
-                label.className = 'text-xs font-semibold uppercase tracking-wider text-slate-400 mt-2';
-            }
-        }
-
-        // 5. Javított Nordic UART Service setup (TX feliratkozás és automatikus fallback)
-        let uartBuffer = '';
-        async function initUartLight(server) {
-            try {
-                const service = await server.getPrimaryService(UUIDS.UART_SERVICE);
-                
-                // Megpróbáljuk megkeresni a TX karakterisztikát (0003, fallback 0002)
-                let txChar = null;
-                try {
-                    txChar = await service.getCharacteristic(UUIDS.UART_TX);
-                } catch (e) {
-                    txChar = await service.getCharacteristic(UUIDS.UART_RX);
-                }
-
-                await txChar.startNotifications();
-                document.getElementById('uartDebug').innerText = 'UART kapcsolat él';
-
-                txChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const decoder = new TextDecoder();
-                    const chunk = decoder.decode(e.target.value);
-                    uartBuffer += chunk;
-
-                    // Soronkénti feldolgozás
-                    let newlineIdx;
-                    while ((newlineIdx = uartBuffer.indexOf('\n')) >= 0) {
-                        const line = uartBuffer.substring(0, newlineIdx).trim();
-                        uartBuffer = uartBuffer.substring(newlineIdx + 1);
-
-                        if (line.length > 0) {
-                            processUartMessage(line);
-                        }
-                    }
-                });
-            } catch (e) {
-                console.warn('UART Szolgáltatás nem indult el:', e);
-                document.getElementById('uartDebug').innerText = 'UART nincs elindítva';
-            }
-        }
-
-        function processUartMessage(line) {
-            document.getElementById('uartDebug').innerText = `Adat: "${line}"`;
-            
-            // Ha "L:123" vagy csak natúr szám érkezik
-            let val = null;
-            if (line.startsWith('L:')) {
-                val = parseInt(line.substring(2));
-            } else if (!isNaN(parseInt(line))) {
-                val = parseInt(line);
-            }
-
-            if (val !== null && !isNaN(val)) {
-                updateLightUI(val);
-                incrementPacket('Light');
-            }
-        }
-
-        function updateLightUI(val) {
-            const clamped = Math.max(0, Math.min(255, val));
-            document.getElementById('lightRaw').innerText = clamped;
-
-            const percent = Math.round((clamped / 255) * 100);
-            document.getElementById('lightPercent').innerText = `${percent}%`;
-            document.getElementById('lightBar').style.width = `${percent}%`;
-
-            const glowOpacity = Math.max(0.1, clamped / 255);
-            document.getElementById('lightGlow').style.opacity = glowOpacity;
-            document.getElementById('lightGlow').style.transform = `scale(${1 + (clamped / 255) * 0.5})`;
-
-            const descEl = document.getElementById('lightDesc');
-            if (clamped < 35) descEl.innerText = 'Sötét';
-            else if (clamped < 90) descEl.innerText = 'Félhomály';
-            else if (clamped < 170) descEl.innerText = 'Világos szoba';
-            else descEl.innerText = 'Erős napfény';
-        }
-
-        // Szimulációs / Demo mód
-        function toggleSimulation() {
-            if (bleDevice && bleDevice.gatt.connected) {
-                bleDevice.gatt.disconnect();
-            }
-
-            isSimulating = !isSimulating;
-            const simBtn = document.getElementById('simBtn');
-            const simText = document.getElementById('simText');
-
-            if (isSimulating) {
-                simBtn.classList.replace('border-slate-700', 'border-emerald-500');
-                simText.innerText = 'Szimuláció: BE';
-                updateStatus(true, 'Szimulációs mód aktív', 'bg-cyan-400');
-
-                let t = 0;
-                let btnToggle = 0;
-
-                simInterval = setInterval(() => {
-                    t += 0.05;
-                    const sx = Math.round(Math.sin(t) * 800);
-                    const sy = Math.round(Math.cos(t * 0.8) * 800);
-                    const sz = Math.round(-1000 + Math.sin(t * 0.5) * 300);
-                    updateAccelerometerUI(sx, sy, sz);
-
-                    const heading = Math.round((Math.sin(t * 0.3) + 1) * 180) % 360;
-                    updateCompassUI(heading);
-
-                    const temp = Math.round(23 + Math.sin(t * 0.2) * 4);
-                    updateTempUI(temp);
-
-                    const light = Math.round((Math.sin(t * 0.5) + 1) * 127.5);
-                    updateLightUI(light);
-
-                    btnToggle++;
-                    if (btnToggle % 30 === 0) updateButtonUI('A', 1);
-                    else if (btnToggle % 30 === 8) updateButtonUI('A', 0);
-
-                    if (btnToggle % 45 === 0) updateButtonUI('B', 1);
-                    else if (btnToggle % 45 === 12) updateButtonUI('B', 0);
-
-                    incrementPacket('Acc');
-                }, 80);
-            } else {
-                simBtn.classList.replace('border-emerald-500', 'border-slate-700');
-                simText.innerText = 'Szimuláció: KI';
-                clearInterval(simInterval);
-                updateStatus(false, 'Szimuláció leállítva');
-            }
-        }
-
-        function toggleModal(show) {
-            document.getElementById('helpModal').classList.toggle('hidden', !show);
-        }
-    </script>
-</body>
-</html>
