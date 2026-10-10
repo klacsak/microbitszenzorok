@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>micro:bit Szenzor Monitor & BLE Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            mbit: {
+              teal: '#00e5ff',
+              cyan: '#00bcd4',
+              orange: '#ff6d00',
+              pink: '#ff1744',
+              dark: '#0f172a',
+              card: '#1e293b',
+              border: '#334155'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #0b1120;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .pulse-ring {
+      animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.08); }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-mbit-teal selection:text-black">
+
+  <!-- Top Navigation & Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- micro:bit stylized icon -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center font-black text-cyan-400 tracking-tighter text-lg">
+            µ:b
+          </div>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            micro:bit Live Sensor Telemetry
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-cyan-950 text-cyan-400 border border-cyan-800">BLE 4.0+</span>
+          </h1>
+          <p class="text-xs text-slate-400">Web Bluetooth API vezeték nélküli adatfolyam</p>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <!-- Simulation Toggle -->
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs">
+          <span class="text-slate-300 font-medium">Szimuláció:</span>
+          <button id="simBtn" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-600" role="switch" aria-checked="false">
+            <span id="simToggleThumb" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+          </button>
+        </div>
+
+        <!-- Help / Guide Modal Trigger -->
+        <button id="guideBtn" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+          MakeCode Útmutató
+        </button>
+
+        <!-- Connect / Disconnect Buttons -->
+        <button id="connectBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs sm:text-sm shadow-md shadow-cyan-500/20 flex items-center gap-2 transition active:scale-95">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M14.88 16.29L13 18.17V14.41L14.88 16.29M13 5.83L14.88 7.71L13 9.59V5.83M17.71 7.71L12 2H11V9.58L6.41 5L5 6.41L10.59 12L5 17.58L6.41 19L11 14.41V22H12L17.71 16.29L13.41 12L17.71 7.71Z"/>
+          </svg>
+          <span>Csatlakozás</span>
+        </button>
+
+        <button id="disconnectBtn" class="hidden px-4 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>Leválasztás</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    <!-- Browser Compatibility Warning (Shown if navigator.bluetooth is missing) -->
+    <div id="compatAlert" class="hidden rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-amber-200 flex items-start gap-3">
+      <svg class="w-6 h-6 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div class="text-sm">
+        <p class="font-bold text-amber-300">Web Bluetooth nem támogatott ebben a böngészőben!</p>
+        <p class="mt-0.5 text-xs text-amber-200/80">Kérjük, használj <strong>Google Chrome</strong> vagy <strong>Microsoft Edge</strong> böngészőt (asztali gépen vagy Androidon) biztonságos HTTPS / localhost kapcsolaton keresztül. A felület kipróbálásához bekapcsolhatod a jobb felső <em>Szimuláció</em> módot.</p>
+      </div>
+    </div>
+
+    <!-- Status Overview Bar -->
+    <div class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
+      <div class="flex items-center gap-4">
+        <div class="relative flex items-center justify-center">
+          <div id="statusDotPulse" class="w-3.5 h-3.5 rounded-full bg-slate-500 transition-colors duration-300"></div>
+          <div id="statusRing" class="absolute w-5 h-5 rounded-full border border-slate-500/40 opacity-0 transition-opacity"></div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kapcsolat állapota</div>
+          <div id="statusText" class="text-sm sm:text-base font-bold text-slate-200">Nincs kapcsolat</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6 text-xs sm:text-sm">
+        <div class="flex flex-col">
+          <span class="text-slate-400 text-xs">Eszköz</span>
+          <span id="deviceName" class="font-mono font-medium text-slate-200">---</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-slate-400 text-xs">Adatcsomagok</span>
+          <span id="packetCount" class="font-mono font-medium text-cyan-400">0 pkt</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-slate-400 text-xs">Frissítés</span>
+          <span id="refreshRate" class="font-mono font-medium text-emerald-400">0 Hz</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid: Sensor Dashboards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- CARD 1: Gyorsulásmérő (Accelerometer) -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border border-slate-800 lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-100 text-base">Gyorsulásmérő & Dőlés</h2>
+              <p class="text-xs text-slate-400">Tengelyenkénti gyorsulás (G-erő)</p>
+            </div>
+          </div>
+          <div class="flex gap-4 font-mono text-xs">
+            <span class="text-cyan-400">X: <b id="valX" class="text-white">0.00</b> g</span>
+            <span class="text-emerald-400">Y: <b id="valY" class="text-white">0.00</b> g</span>
+            <span class="text-purple-400">Z: <b id="valZ" class="text-white">0.00</b> g</span>
+          </div>
+        </div>
+
+        <!-- Waveform Canvas & 2D Artificial Horizon -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 h-48">
+          <!-- Waveform Chart (2 cols on sm) -->
+          <div class="sm:col-span-2 relative bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center text-[11px] text-slate-400 px-1 mb-1">
+              <span>Valós idejű telemetria diagram</span>
+              <div class="flex gap-2">
+                <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-cyan-400 inline-block"></span> X</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-emerald-400 inline-block"></span> Y</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-purple-400 inline-block"></span> Z</span>
+              </div>
+            </div>
+            <canvas id="accelCanvas" class="w-full flex-1 rounded"></canvas>
+          </div>
+
+          <!-- Bubble / Artificial Horizon Tilt Gauge -->
+          <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 flex flex-col items-center justify-center relative">
+            <span class="text-[11px] text-slate-400 mb-1">Dőlésjelző (Pitch/Roll)</span>
+            <div class="w-32 h-32 rounded-full border-2 border-dashed border-slate-700 relative flex items-center justify-center overflow-hidden bg-slate-900/50">
+              <!-- Center crosshairs -->
+              <div class="absolute w-full h-[1px] bg-slate-800"></div>
+              <div class="absolute h-full w-[1px] bg-slate-800"></div>
+              <div class="w-16 h-16 rounded-full border border-slate-800/80"></div>
+              <!-- Floating Bubble -->
+              <div id="bubble" class="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-400 to-emerald-300 shadow-md shadow-cyan-400/50 absolute transition-all duration-75 flex items-center justify-center">
+                <div class="w-2 h-2 rounded-full bg-white"></div>
+              </div>
+            </div>
+            <span id="pitchRollText" class="text-[10px] text-slate-400 font-mono mt-1">Roll: 0° | Pitch: 0°</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: Hőmérséklet (Temperature) -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-100 text-base">Hőmérséklet</h2>
+              <p class="text-xs text-slate-400">MCU beépített hőérzékelő</p>
+            </div>
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded bg-orange-950/70 border border-orange-800 text-orange-400 font-mono">°C</span>
+        </div>
+
+        <div class="flex flex-col items-center justify-center my-3">
+          <div class="text-5xl font-extrabold tracking-tight text-white font-mono flex items-baseline">
+            <span id="tempVal">--</span>
+            <span class="text-2xl text-orange-400 font-sans ml-1">°C</span>
+          </div>
+          <!-- Gauge Bar -->
+          <div class="w-full mt-4 bg-slate-900 rounded-full h-3.5 border border-slate-800 overflow-hidden relative">
+            <div id="tempBar" class="h-full bg-gradient-to-r from-blue-500 via-amber-400 to-rose-500 rounded-full transition-all duration-500" style="width: 25%;"></div>
+          </div>
+          <div class="w-full flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>0°C</span>
+            <span>25°C</span>
+            <span>50°C</span>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
+          <div>Min: <span id="tempMin" class="text-slate-200 font-semibold">-- °C</span></div>
+          <div>Max: <span id="tempMax" class="text-slate-200 font-semibold">-- °C</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 3: Iránytű & Magnetométer (Compass) -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <polygon points="12,7 15,12 12,17 9,12" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-100 text-base">Iránytű & Irányzék</h2>
+              <p class="text-xs text-slate-400">Magnetométer tájolás</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span id="headingDegrees" class="font-mono text-lg font-bold text-indigo-400">0°</span>
+            <div id="cardinalDir" class="text-xs font-semibold text-slate-300">É (0°)</div>
+          </div>
+        </div>
+
+        <!-- Compass Visual Rose -->
+        <div class="flex items-center justify-center my-3">
+          <div class="relative w-36 h-36 rounded-full bg-slate-900 border-2 border-indigo-500/30 flex items-center justify-center shadow-inner">
+            <!-- Cardinal markers -->
+            <span class="absolute top-1 text-[11px] font-bold text-rose-400">É</span>
+            <span class="absolute bottom-1 text-[11px] font-bold text-slate-400">D</span>
+            <span class="absolute right-2 text-[11px] font-bold text-slate-400">K</span>
+            <span class="absolute left-2 text-[11px] font-bold text-slate-400">NY</span>
+
+            <!-- Rotating Compass Needle -->
+            <div id="compassNeedle" class="w-full h-full absolute transition-transform duration-150 ease-out flex items-center justify-center">
+              <div class="w-2 h-28 relative flex flex-col items-center">
+                <!-- North red tip -->
+                <div class="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[38px] border-b-rose-500"></div>
+                <!-- South slate tip -->
+                <div class="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[38px] border-t-slate-400"></div>
+              </div>
+            </div>
+            <!-- Center pin -->
+            <div class="w-4 h-4 rounded-full bg-white shadow-md z-10 border-2 border-slate-800"></div>
+          </div>
+        </div>
+
+        <p class="text-center text-[11px] text-slate-400">
+          A micro:bit forgatásával valós időben követi a mágneses északot.
+        </p>
+      </div>
+
+      <!-- CARD 4: Nyomógombok Állapota (Buttons A & B) -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border border-slate-800 lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-lg bg-pink-500/10 text-pink-400 border border-pink-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="8" cy="12" r="4" stroke-width="2"/>
+                <circle cx="16" cy="12" r="4" stroke-width="2"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-100 text-base">Fizikai Nyomógombok</h2>
+              <p class="text-xs text-slate-400">'A' és 'B' mikrokapcsolók állapota</p>
+            </div>
+          </div>
+          <span class="text-xs text-slate-400">0: Felengedve | 1: Lenymova | 2: Hosszan</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 my-2">
+          <!-- Button A Card -->
+          <div id="cardBtnA" class="bg-slate-900/60 rounded-xl p-5 border border-slate-800 flex flex-col items-center justify-center transition-all duration-150">
+            <span class="text-xs font-semibold text-slate-400 mb-2">GOMB: A</span>
+            <div id="visualBtnA" class="w-16 h-16 rounded-full border-4 border-slate-700 bg-slate-800 flex items-center justify-center shadow-md text-xl font-black text-slate-400 transition-all duration-150">
+              A
+            </div>
+            <span id="statusBtnA" class="text-xs font-mono font-medium mt-3 text-slate-400">Felengedve</span>
+          </div>
+
+          <!-- Button B Card -->
+          <div id="cardBtnB" class="bg-slate-900/60 rounded-xl p-5 border border-slate-800 flex flex-col items-center justify-center transition-all duration-150">
+            <span class="text-xs font-semibold text-slate-400 mb-2">GOMB: B</span>
+            <div id="visualBtnB" class="w-16 h-16 rounded-full border-4 border-slate-700 bg-slate-800 flex items-center justify-center shadow-md text-xl font-black text-slate-400 transition-all duration-150">
+              B
+            </div>
+            <span id="statusBtnB" class="text-xs font-mono font-medium mt-3 text-slate-400">Felengedve</span>
+          </div>
+        </div>
+
+        <div class="text-xs text-slate-400 flex items-center justify-between pt-2 border-t border-slate-800">
+          <span>Azonnali visszajelzés a gombok lenyomásakor</span>
+          <span id="btnCombo" class="text-pink-400 font-semibold font-mono">---</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Event Log Console -->
+    <div class="glass-panel rounded-2xl p-4 border border-slate-800">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5 font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          BLE Telemetria Konzol / Napló
+        </span>
+        <button id="clearLogBtn" class="text-[11px] text-slate-400 hover:text-white transition">Napló törlése</button>
+      </div>
+      <div id="logConsole" class="h-28 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/80 p-3 rounded-lg space-y-1 custom-scrollbar border border-slate-900">
+        <div><span class="text-cyan-400">[Rendszer]</span> Alkalmazás betöltve. Csatlakozz a micro:bithez vagy kapcsold be a szimulációt!</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MakeCode Guide Modal -->
+  <div id="guideModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          micro:bit MakeCode Beállítási Útmutató
+        </h3>
+        <button id="closeGuideBtn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700">
+          <p class="font-semibold text-cyan-300 mb-1">1. Lépés: Bluetooth kiegészítő hozzáadása</p>
+          <p>Nyisd meg a <a href="https://makecode.microbit.org" target="_blank" class="text-cyan-400 underline font-mono">makecode.microbit.org</a> oldalt, hozz létre egy új projektet, kattints a <strong>Kiterjesztések (Extensions)</strong> menüpontra, és keresd meg a <strong>bluetooth</strong> csomagot (fogadd el a Rádió funkció eltávolítását).</p>
+        </div>
+
+        <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700">
+          <p class="font-semibold text-cyan-300 mb-1">2. Lépés: Szolgáltatások elindítása az induláskor</p>
+          <p>Helyezd el az <code>indításkor (on start)</code> blokkba a kívánt Bluetooth szolgáltatások inicializálását:</p>
+          <pre class="bg-slate-950 p-2.5 rounded text-[12px] font-mono text-emerald-400 mt-2 overflow-x-auto border border-slate-800">bluetooth.startAccelerometerService()
+bluetooth.startTemperatureService()
+bluetooth.startMagnetometerService()
+bluetooth.startIOPinService()
+bluetooth.startButtonService()</pre>
+        </div>
+
+        <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700">
+          <p class="font-semibold text-cyan-300 mb-1">3. Lépés: Párosítás nélküli mód (Kényelmes Web Bluetooth)</p>
+          <p>Kattints a MakeCode-ban a jobb felső fogaskerék ikonra -> <strong>Projekt beállításai (Project Settings)</strong>, és kapcsold be a:
+          <span class="block mt-1 font-mono text-amber-300 bg-amber-950/40 p-1.5 rounded border border-amber-800/50">"No Pairing Required: Anyone can connect via Bluetooth."</span>
+          Ezután töltsd le a <code>.hex</code> fájlt és másold a micro:bit-re.</p>
+        </div>
+
+        <div class="bg-cyan-950/40 border border-cyan-800/60 p-3.5 rounded-xl text-cyan-200">
+          <p class="font-semibold mb-1">💡 Tipp a böngészőhöz:</p>
+          <p>Győződj meg róla, hogy a számítógépeden vagy telefonodon be van kapcsolva a Bluetooth, és Google Chrome / Edge böngészőt használsz.</p>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <button id="closeGuideBtn2" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs transition">
+          Értem, bezárás
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // micro:bit Official BLE UUIDs
+    const SERVICES = {
+      ACCEL: {
+        service: 'e95d0753-251d-470a-a062-fa1922dfa9a8',
+        data:    'e95dca46-251d-470a-a062-fa1922dfa9a8',
+        period:  'e95dfb24-251d-470a-a062-fa1922dfa9a8'
+      },
+      TEMP: {
+        service: 'e95d6100-251d-470a-a062-fa1922dfa9a8',
+        data:    'e95d9250-251d-470a-a062-fa1922dfa9a8',
+        period:  'e95d1b25-251d-470a-a062-fa1922dfa9a8'
+      },
+      MAG: {
+        service: 'e95df2d8-251d-470a-a062-fa1922dfa9a8',
+        bearing: 'e95d9715-251d-470a-a062-fa1922dfa9a8',
+        period:  'e95d386c-251d-470a-a062-fa1922dfa9a8'
+      },
+      BTN: {
+        service: 'e95d9882-251d-470a-a062-fa1922dfa9a8',
+        btnA:    'e95dda90-251d-470a-a062-fa1922dfa9a8',
+        btnB:    'e95dda91-251d-470a-a062-fa1922dfa9a8'
+      }
+    };
+
+    // Global Telemetry State
+    const state = {
+      connected: false,
+      device: null,
+      server: null,
+      simulating: false,
+      simInterval: null,
+      packetCounter: 0,
+      packetsLastSec: 0,
+      hzTimer: null,
+      temp: { current: null, min: null, max: null },
+      accel: { x: 0, y: 0, z: 0 },
+      compass: 0,
+      btnA: 0,
+      btnB: 0,
+      accelHistory: {
+        x: new Array(50).fill(0),
+        y: new Array(50).fill(0),
+        z: new Array(50).fill(0)
+      }
+    };
+
+    // DOM Elements
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const simBtn = document.getElementById('simBtn');
+    const simToggleThumb = document.getElementById('simToggleThumb');
+    const statusText = document.getElementById('statusText');
+    const statusDotPulse = document.getElementById('statusDotPulse');
+    const statusRing = document.getElementById('statusRing');
+    const deviceName = document.getElementById('deviceName');
+    const packetCount = document.getElementById('packetCount');
+    const refreshRate = document.getElementById('refreshRate');
+    const logConsole = document.getElementById('logConsole');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const guideBtn = document.getElementById('guideBtn');
+    const guideModal = document.getElementById('guideModal');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const closeGuideBtn2 = document.getElementById('closeGuideBtn2');
+    const compatAlert = document.getElementById('compatAlert');
+
+    // Sensor DOM Elements
+    const valX = document.getElementById('valX');
+    const valY = document.getElementById('valY');
+    const valZ = document.getElementById('valZ');
+    const bubble = document.getElementById('bubble');
+    const pitchRollText = document.getElementById('pitchRollText');
+    const tempVal = document.getElementById('tempVal');
+    const tempBar = document.getElementById('tempBar');
+    const tempMin = document.getElementById('tempMin');
+    const tempMax = document.getElementById('tempMax');
+    const headingDegrees = document.getElementById('headingDegrees');
+    const cardinalDir = document.getElementById('cardinalDir');
+    const compassNeedle = document.getElementById('compassNeedle');
+    const visualBtnA = document.getElementById('visualBtnA');
+    const visualBtnB = document.getElementById('visualBtnB');
+    const cardBtnA = document.getElementById('cardBtnA');
+    const cardBtnB = document.getElementById('cardBtnB');
+    const statusBtnA = document.getElementById('statusBtnA');
+    const statusBtnB = document.getElementById('statusBtnB');
+    const btnCombo = document.getElementById('btnCombo');
+
+    // Canvas setup
+    const accelCanvas = document.getElementById('accelCanvas');
+    const ctx = accelCanvas.getContext('2d');
+
+    function log(message, type = 'info') {
+      const el = document.createElement('div');
+      const time = new Date().toLocaleTimeString();
+      let colorClass = 'text-slate-400';
+      if (type === 'error') colorClass = 'text-rose-400 font-semibold';
+      if (type === 'success') colorClass = 'text-emerald-400';
+      if (type === 'warn') colorClass = 'text-amber-400';
+
+      el.className = `${colorClass}`;
+      el.innerHTML = `<span class="text-slate-600">[${time}]</span> ${message}`;
+      logConsole.appendChild(el);
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+
+    clearLogBtn.addEventListener('click', () => {
+      logConsole.innerHTML = '';
+      log('Napló törölve.');
+    });
+
+    // Modal controls
+    guideBtn.addEventListener('click', () => guideModal.classList.remove('hidden'));
+    closeGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+    closeGuideBtn2.addEventListener('click', () => guideModal.classList.add('hidden'));
+
+    // Check Web Bluetooth Support
+    if (!navigator.bluetooth) {
+      compatAlert.classList.remove('hidden');
+      log('Figyelem: A böngésző nem támogatja a Web Bluetooth API-t. Használj Chrome/Edge-et vagy kapcsold be a szimulációt!', 'warn');
+    }
+
+    function setStatus(stateCode, customDevice = null) {
+      if (stateCode === 'connected') {
+        statusText.textContent = 'Csatlakozva';
+        statusText.className = 'text-sm sm:text-base font-bold text-emerald-400';
+        statusDotPulse.className = 'w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/50';
+        statusRing.className = 'absolute w-5 h-5 rounded-full border border-emerald-400 pulse-ring';
+        connectBtn.classList.add('hidden');
+        disconnectBtn.classList.remove('hidden');
+        if (customDevice) deviceName.textContent = customDevice;
+      } else if (stateCode === 'connecting') {
+        statusText.textContent = 'Csatlakozás folyamatban...';
+        statusText.className = 'text-sm sm:text-base font-bold text-amber-400';
+        statusDotPulse.className = 'w-3.5 h-3.5 rounded-full bg-amber-400';
+        statusRing.className = 'absolute w-5 h-5 rounded-full border border-amber-400 animate-ping';
+      } else {
+        statusText.textContent = 'Nincs kapcsolat';
+        statusText.className = 'text-sm sm:text-base font-bold text-slate-400';
+        statusDotPulse.className = 'w-3.5 h-3.5 rounded-full bg-slate-500';
+        statusRing.className = 'absolute w-5 h-5 rounded-full opacity-0';
+        connectBtn.classList.remove('hidden');
+        disconnectBtn.classList.add('hidden');
+        deviceName.textContent = '---';
+        refreshRate.textContent = '0 Hz';
+      }
+    }
+
+    // Packet rate counter
+    setInterval(() => {
+      if (state.connected || state.simulating) {
+        refreshRate.textContent = `${state.packetsLastSec} Hz`;
+        state.packetsLastSec = 0;
+      }
+    }, 1000);
+
+    function registerPacket() {
+      state.packetCounter++;
+      state.packetsLastSec++;
+      packetCount.textContent = `${state.packetCounter} pkt`;
+    }
+
+    function updateAccelerometer(x, y, z) {
+      registerPacket();
+      state.accel = { x, y, z };
+      valX.textContent = x.toFixed(2);
+      valY.textContent = y.toFixed(2);
+      valZ.textContent = z.toFixed(2);
+
+      // Roll / Pitch calculations (approximate angles in degrees)
+      const roll = Math.round(Math.atan2(y, Math.sqrt(x * x + z * z)) * 180 / Math.PI);
+      const pitch = Math.round(Math.atan2(-x, z) * 180 / Math.PI);
+      pitchRollText.textContent = `Roll: ${roll}° | Pitch: ${pitch}°`;
+
+      // Visual Bubble Shift (-40px to +40px)
+      const maxOffset = 38;
+      const bubbleX = Math.max(-maxOffset, Math.min(maxOffset, x * 35));
+      const bubbleY = Math.max(-maxOffset, Math.min(maxOffset, y * 35));
+      bubble.style.transform = `translate(${bubbleX}px, ${bubbleY}px)`;
+
+      // Push to history for waveform
+      state.accelHistory.x.push(x);
+      state.accelHistory.x.shift();
+      state.accelHistory.y.push(y);
+      state.accelHistory.y.shift();
+      state.accelHistory.z.push(z);
+      state.accelHistory.z.shift();
+
+      drawAccelWaveform();
+    }
+
+    function updateTemperature(celsius) {
+      registerPacket();
+      state.temp.current = celsius;
+      if (state.temp.min === null || celsius < state.temp.min) state.temp.min = celsius;
+      if (state.temp.max === null || celsius > state.temp.max) state.temp.max = celsius;
+
+      tempVal.textContent = celsius;
+      tempMin.textContent = `${state.temp.min} °C`;
+      tempMax.textContent = `${state.temp.max} °C`;
+
+      // 0 - 50 °C percentage
+      const percent = Math.min(100, Math.max(0, (celsius / 50) * 100));
+      tempBar.style.width = `${percent}%`;
+    }
+
+    function updateCompass(heading) {
+      registerPacket();
+      state.compass = heading;
+      headingDegrees.textContent = `${Math.round(heading)}°`;
+      compassNeedle.style.transform = `rotate(${-heading}deg)`;
+
+      // Cardinal points in Hungarian
+      const directions = [
+        { name: 'É (Észak)', deg: 0 },
+        { name: 'ÉK (Északkelet)', deg: 45 },
+        { name: 'K (Kelet)', deg: 90 },
+        { name: 'DK (Délkelet)', deg: 135 },
+        { name: 'D (Dél)', deg: 180 },
+        { name: 'DNY (Délnyugat)', deg: 225 },
+        { name: 'NY (Nyugat)', deg: 270 },
+        { name: 'ÉNY (Északnyugat)', deg: 315 }
+      ];
+      const index = Math.round(((heading %= 360) < 0 ? heading + 360 : heading) / 45) % 8;
+      cardinalDir.textContent = directions[index].name;
+    }
+
+    function updateButton(btn, value) {
+      registerPacket();
+      const isPressed = value === 1 || value === 2;
+      const statusLbl = value === 0 ? 'Felengedve' : (value === 1 ? 'Lenyomva' : 'Hosszan lenyomva');
+
+      if (btn === 'A') {
+        state.btnA = value;
+        statusBtnA.textContent = statusLbl;
+        if (isPressed) {
+          visualBtnA.className = 'w-16 h-16 rounded-full border-4 border-cyan-400 bg-cyan-500 text-white font-black text-xl shadow-lg shadow-cyan-400/50 scale-95 transition-all';
+          cardBtnA.className = 'bg-cyan-950/40 rounded-xl p-5 border border-cyan-500/50 flex flex-col items-center justify-center transition-all';
+        } else {
+          visualBtnA.className = 'w-16 h-16 rounded-full border-4 border-slate-700 bg-slate-800 text-slate-400 font-black text-xl transition-all';
+          cardBtnA.className = 'bg-slate-900/60 rounded-xl p-5 border border-slate-800 flex flex-col items-center justify-center transition-all';
+        }
+      } else if (btn === 'B') {
+        state.btnB = value;
+        statusBtnB.textContent = statusLbl;
+        if (isPressed) {
+          visualBtnB.className = 'w-16 h-16 rounded-full border-4 border-pink-400 bg-pink-500 text-white font-black text-xl shadow-lg shadow-pink-400/50 scale-95 transition-all';
+          cardBtnB.className = 'bg-pink-950/40 rounded-xl p-5 border border-pink-500/50 flex flex-col items-center justify-center transition-all';
+        } else {
+          visualBtnB.className = 'w-16 h-16 rounded-full border-4 border-slate-700 bg-slate-800 text-slate-400 font-black text-xl transition-all';
+          cardBtnB.className = 'bg-slate-900/60 rounded-xl p-5 border border-slate-800 flex flex-col items-center justify-center transition-all';
+        }
+      }
+
+      if (state.btnA > 0 && state.btnB > 0) {
+        btnCombo.textContent = 'A + B EGYÜTT!';
+      } else if (state.btnA > 0) {
+        btnCombo.textContent = 'A gomb aktív';
+      } else if (state.btnB > 0) {
+        btnCombo.textContent = 'B gomb aktív';
+      } else {
+        btnCombo.textContent = '---';
+      }
+    }
+
+    function resizeCanvas() {
+      if (!accelCanvas) return;
+      const rect = accelCanvas.getBoundingClientRect();
+      accelCanvas.width = rect.width * window.devicePixelRatio;
+      accelCanvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 100);
+
+    function drawAccelWaveform() {
+      const width = accelCanvas.clientWidth;
+      const height = accelCanvas.clientHeight;
+      if (!width || !height) return;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Center reference zero-line
+      const midY = height / 2;
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(width, midY);
+      ctx.stroke();
+
+      const drawSeries = (data, strokeColor) => {
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const step = width / (data.length - 1);
+        for (let i = 0; i < data.length; i++) {
+          // Scale: 1g = height / 3
+          const y = midY - (data[i] * (height / 3));
+          if (i === 0) ctx.moveTo(0, y);
+          else ctx.lineTo(i * step, y);
+        }
+        ctx.stroke();
+      };
+
+      drawSeries(state.accelHistory.x, '#22d3ee'); // Cyan
+      drawSeries(state.accelHistory.y, '#34d399'); // Emerald
+      drawSeries(state.accelHistory.z, '#c084fc'); // Purple
+    }
+
+    async function connectMicrobit() {
+      if (!navigator.bluetooth) {
+        log('A Web Bluetooth API nem elérhető ezen a készüléken!', 'error');
+        return;
+      }
+
+      try {
+        setStatus('connecting');
+        log('micro:bit keresése Bluetoothon...');
+
+        // Request BLE device advertising micro:bit sensor services or device name
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [
+            { namePrefix: 'BBC micro:bit' }
+          ],
+          optionalServices: [
+            SERVICES.ACCEL.service,
+            SERVICES.TEMP.service,
+            SERVICES.MAG.service,
+            SERVICES.BTN.service
+          ]
+        });
+
+        state.device = device;
+        log(`Eszköz megtalálva: ${device.name || 'Ismeretlen micro:bit'}`);
+        deviceName.textContent = device.name || 'BBC micro:bit';
+
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+
+        log('Kapcsolódás a GATT szerverhez...');
+        const server = await device.gatt.connect();
+        state.server = server;
+        state.connected = true;
+        setStatus('connected', device.name);
+        log('Sikeres GATT kapcsolat! Érzékelők előfizetése...', 'success');
+
+        // 1. Gyorsulásmérő inicializálása
+        try {
+          const accelService = await server.getPrimaryService(SERVICES.ACCEL.service);
+          const accelChar = await accelService.getCharacteristic(SERVICES.ACCEL.data);
+          await accelChar.startNotifications();
+          accelChar.addEventListener('characteristicvaluechanged', (e) => {
+            const val = e.target.value;
+            // micro:bit sends 3 signed 16-bit integers in milli-g
+            const x = val.getInt16(0, true) / 1000.0;
+            const y = val.getInt16(2, true) / 1000.0;
+            const z = val.getInt16(4, true) / 1000.0;
+            updateAccelerometer(x, y, z);
+          });
+          log('Gyorsulásmérő értesítések aktívak.');
+        } catch (err) {
+          log('Gyorsulásmérő szolgáltatás nem indult el vagy nincs MakeCode-ban megadva: ' + err.message, 'warn');
+        }
+
+        // 2. Hőmérséklet inicializálása
+        try {
+          const tempService = await server.getPrimaryService(SERVICES.TEMP.service);
+          const tempChar = await tempService.getCharacteristic(SERVICES.TEMP.data);
+          await tempChar.startNotifications();
+          tempChar.addEventListener('characteristicvaluechanged', (e) => {
+            const celsius = e.target.value.getInt8(0);
+            updateTemperature(celsius);
+          });
+          log('Hőmérséklet-érzékelő aktív.');
+        } catch (err) {
+          log('Hőmérséklet szolgáltatás nem található a micro:biten.', 'warn');
+        }
+
+        // 3. Magnetométer / Iránytű inicializálása
+        try {
+          const magService = await server.getPrimaryService(SERVICES.MAG.service);
+          const bearingChar = await magService.getCharacteristic(SERVICES.MAG.bearing);
+          await bearingChar.startNotifications();
+          bearingChar.addEventListener('characteristicvaluechanged', (e) => {
+            const bearing = e.target.value.getUint16(0, true);
+            updateCompass(bearing);
+          });
+          log('Magnetométer / Iránytű aktív.');
+        } catch (err) {
+          log('Magnetométer szolgáltatás kihagyva (nem található).', 'warn');
+        }
+
+        // 4. Nyomógombok (A & B) inicializálása
+        try {
+          const btnService = await server.getPrimaryService(SERVICES.BTN.service);
+          const charA = await btnService.getCharacteristic(SERVICES.BTN.btnA);
+          const charB = await btnService.getCharacteristic(SERVICES.BTN.btnB);
+
+          await charA.startNotifications();
+          charA.addEventListener('characteristicvaluechanged', (e) => {
+            updateButton('A', e.target.value.getUint8(0));
+          });
+
+          await charB.startNotifications();
+          charB.addEventListener('characteristicvaluechanged', (e) => {
+            updateButton('B', e.target.value.getUint8(0));
+          });
+          log('Nyomógombok figyelése aktív.');
+        } catch (err) {
+          log('Gomb-szolgáltatás kihagyva: ' + err.message, 'warn');
+        }
+
+      } catch (err) {
+        log(`Bluetooth hiba: ${err.message}`, 'error');
+        setStatus('disconnected');
+      }
+    }
+
+    function disconnectMicrobit() {
+      if (state.device && state.device.gatt.connected) {
+        state.device.gatt.disconnect();
+      }
+      onDisconnected();
+    }
+
+    function onDisconnected() {
+      state.connected = false;
+      state.device = null;
+      state.server = null;
+      setStatus('disconnected');
+      log('A micro:bit kapcsolat megszakadt.', 'warn');
+    }
+
+    function toggleSimulation() {
+      if (state.connected) {
+        log('A szimulációhoz előbb válaszd le a valós eszközt!', 'warn');
+        return;
+      }
+
+      state.simulating = !state.simulating;
+      if (state.simulating) {
+        simBtn.classList.replace('bg-slate-600', 'bg-cyan-500');
+        simToggleThumb.classList.replace('translate-x-0', 'translate-x-4');
+        setStatus('connected', 'Szimulált micro:bit v2');
+        log('Szimulációs üzemmód elindítva mesterséges adatokkal.', 'success');
+
+        let simAngle = 0;
+        let simTempBase = 24;
+        let simStep = 0;
+
+        state.simInterval = setInterval(() => {
+          simStep++;
+          simAngle = (simAngle + 3) % 360;
+
+          // Accel simulation with smooth sine waves
+          const simX = Math.sin(simStep * 0.08) * 0.75 + (Math.random() - 0.5) * 0.1;
+          const simY = Math.cos(simStep * 0.08) * 0.75 + (Math.random() - 0.5) * 0.1;
+          const simZ = Math.sin(simStep * 0.04) * 0.2 + 0.95;
+          updateAccelerometer(simX, simY, simZ);
+
+          // Compass simulation
+          updateCompass(simAngle);
+
+          // Temperature fluctuation every 25 ticks
+          if (simStep % 25 === 0) {
+            const currentT = Math.round(simTempBase + (Math.random() * 4 - 2));
+            updateTemperature(currentT);
+          }
+
+          // Random button toggle every 50 ticks
+          if (simStep % 40 === 0) {
+            const btnRandom = Math.random();
+            if (btnRandom < 0.35) {
+              updateButton('A', 1);
+              setTimeout(() => updateButton('A', 0), 600);
+            } else if (btnRandom < 0.7) {
+              updateButton('B', 1);
+              setTimeout(() => updateButton('B', 0), 600);
+            } else {
+              updateButton('A', 1);
+              updateButton('B', 1);
+              setTimeout(() => {
+                updateButton('A', 0);
+                updateButton('B', 0);
+              }, 700);
+            }
+          }
+        }, 60);
+
+      } else {
+        simBtn.classList.replace('bg-cyan-500', 'bg-slate-600');
+        simToggleThumb.classList.replace('translate-x-4', 'translate-x-0');
+        clearInterval(state.simInterval);
+        state.simInterval = null;
+        setStatus('disconnected');
+        log('Szimuláció leállítva.');
+      }
+    }
+
+    connectBtn.addEventListener('click', connectMicrobit);
+    disconnectBtn.addEventListener('click', disconnectMicrobit);
+    simBtn.addEventListener('click', toggleSimulation);
+
+    // Initial canvas paint
+    drawAccelWaveform();
+  </script>
+</body>
+</html>
